@@ -1,0 +1,24 @@
+{
+  "name": "photopjs",
+  "version": "1.0.0",
+  "description": "A library to simplify the https://photop.live REST api.",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/witherBattler/Photop.js.git"
+  },
+  "author": "IMPixel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/witherBattler/Photop.js/issues"
+  },
+  "homepage": "https://github.com/witherBattler/Photop.js#readme",
+  "dependencies": {
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.2.9",
+    "simple-socket-js": "^2.1.1"
+  }
+}
