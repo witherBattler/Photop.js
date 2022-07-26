@@ -60,7 +60,7 @@ function api(url) {
     return "https://photop.exotek.co/" + url
 }
 
-export class PhotopSession {
+class PhotopSession {
     constructor(config) {
         this.config = config
         this.token = config.token.token
@@ -165,7 +165,7 @@ export class PhotopSession {
     
 }
 
-export class PhotopPost {
+class PhotopPost {
     constructor(id, author, text) {
         this.id = id
 		this.authorId = author
@@ -260,7 +260,7 @@ export class PhotopPost {
 	}
 }
 
-export class PhotopChat {
+class PhotopChat {
     constructor(id, post) {
         this.id = id
         this.post = post
@@ -298,7 +298,7 @@ export class PhotopChat {
     }
 }
 
-export class PhotopSelfPost extends PhotopPost {
+class PhotopSelfPost extends PhotopPost {
     constructor(id, session, group) {
         super(id)
         this.url = "https://app.photop.live/?post=" + id
@@ -340,7 +340,8 @@ export class PhotopSelfPost extends PhotopPost {
 let newPostListeners = []
 let currentSession
 
-export function signIn(username, password) {
+
+function signIn(username, password) {
 	return new Promise(async function(resolve, reject) {
 		let response = await sendRequest(
 			api("temp/signin"),
@@ -355,7 +356,7 @@ export function signIn(username, password) {
 		resolve(session)
 	}) 
 }
-export function appendEventListener(event, callback) {
+function appendEventListener(event, callback) {
 	switch(event) {
 		case "newPost":
 			initializeMainPostListener()
@@ -365,21 +366,21 @@ export function appendEventListener(event, callback) {
 			throw new Error("Unknown event: " + event)
 	}
 }
-export async function getUserById(id) {
+async function getUserById(id) {
 	let response = await sendRequest(
 		api("user?id=" + id),
 		"GET",
 	)
 	return new PhotopUser(JSON.parse(response))
 }
-export async function getUserByUsername(username) {
+async function getUserByUsername(username) {
 	let response = await sendRequest(
 		api("user?name=" + username),
 		"GET",
 	)
 	return new PhotopUser(JSON.parse(response))
 }
-export async function getPostById(id) {
+async function getPostById(id) {
 	let response = await sendRequest(
 		api("posts?postid=" + id),
 		"GET",
@@ -387,7 +388,7 @@ export async function getPostById(id) {
 	return new PhotopPost(response.post._id, response.post.Text)
 }
 
-export class PhotopUser {
+class PhotopUser {
     constructor(config) {
         this.config = config
     }
@@ -464,11 +465,22 @@ socket.remotes.stream = function(data) {
 			let user = await sendRequest(
 				api("user?id=" + data.chat.UserID)
 			)
-			console.log(user)
 			return new PhotopUser(JSON.parse(user))
 		}
 		
         chatEventListeners[data.chat.PostID][i](chat)
     }
   }
+}
+
+module.exports = {
+    signIn,
+    appendEventListener,
+    getUserById,
+    getUserByUsername,
+    getPostById,
+    PhotopPost,
+    PhotopSelfPost,
+    PhotopUser,
+    PhotopChat,
 }
