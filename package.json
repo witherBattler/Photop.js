@@ -1,6 +1,6 @@
 {
   "name": "photopjs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A library to simplify the https://photop.live REST api.",
   "main": "client.js",
   "scripts": {
