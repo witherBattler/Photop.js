@@ -2,7 +2,7 @@
   "name": "photopjs",
   "version": "0.0.5",
   "description": "A library to simplify the https://photop.live REST api.",
-  "main": "client.mjs",
+  "main": "client.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
