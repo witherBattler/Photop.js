@@ -20,5 +20,6 @@
     "form-data": "^4.0.0",
     "node-fetch": "^3.2.9",
     "simple-socket-js": "^2.1.1"
-  }
+  },
+  "type": "module"
 }
