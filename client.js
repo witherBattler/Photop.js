@@ -1,6 +1,6 @@
-const fetch = require("node-fetch")
-const FormData = require("form-data")
-const SimpleSocket = require("simple-socket-js")
+import fetch from "node-fetch"
+import FormData from "form-data"
+import SimpleSocket from "simple-socket-js"
 const socket = new SimpleSocket({
     project_id: "61b9724ea70f1912d5e0eb11",
     project_token: "client_a05cd40e9f0d2b814249f06fbf97fe0f1d5"
@@ -10,7 +10,7 @@ socket.remotes.stream = function(data) {
     console.log(data)
 }
 
-async function sendRequest(url, method, body, auth, contentType = "application/json", stringify = true, useJson = false) {
+export async function sendRequest(url, method, body, auth, contentType = "application/json", stringify = true, useJson = false) {
     return new Promise((resolve, reject) => {
         let headers = {
             'Content-Type': contentType
@@ -60,7 +60,7 @@ function api(url) {
     return "https://photop.exotek.co/" + url
 }
 
-class PhotopSession {
+export class PhotopSession {
     constructor(config) {
         this.config = config
         this.token = config.token.token
@@ -165,7 +165,7 @@ class PhotopSession {
     
 }
 
-class PhotopPost {
+export class PhotopPost {
     constructor(id, author, text) {
         this.id = id
 		this.authorId = author
@@ -260,7 +260,7 @@ class PhotopPost {
 	}
 }
 
-class PhotopChat {
+export class PhotopChat {
     constructor(id, post) {
         this.id = id
         this.post = post
@@ -298,7 +298,7 @@ class PhotopChat {
     }
 }
 
-class PhotopSelfPost extends PhotopPost {
+export class PhotopSelfPost extends PhotopPost {
     constructor(id, session, group) {
         super(id)
         this.url = "https://app.photop.live/?post=" + id
@@ -340,8 +340,7 @@ class PhotopSelfPost extends PhotopPost {
 let newPostListeners = []
 let currentSession
 
-
-function signIn(username, password) {
+export function signIn(username, password) {
 	return new Promise(async function(resolve, reject) {
 		let response = await sendRequest(
 			api("temp/signin"),
@@ -356,7 +355,7 @@ function signIn(username, password) {
 		resolve(session)
 	}) 
 }
-function appendEventListener(event, callback) {
+export function appendEventListener(event, callback) {
 	switch(event) {
 		case "newPost":
 			initializeMainPostListener()
@@ -366,21 +365,21 @@ function appendEventListener(event, callback) {
 			throw new Error("Unknown event: " + event)
 	}
 }
-async function getUserById(id) {
+export async function getUserById(id) {
 	let response = await sendRequest(
 		api("user?id=" + id),
 		"GET",
 	)
 	return new PhotopUser(JSON.parse(response))
 }
-async function getUserByUsername(username) {
+export async function getUserByUsername(username) {
 	let response = await sendRequest(
 		api("user?name=" + username),
 		"GET",
 	)
 	return new PhotopUser(JSON.parse(response))
 }
-async function getPostById(id) {
+export async function getPostById(id) {
 	let response = await sendRequest(
 		api("posts?postid=" + id),
 		"GET",
@@ -471,16 +470,4 @@ socket.remotes.stream = function(data) {
         chatEventListeners[data.chat.PostID][i](chat)
     }
   }
-}
-
-module.exports = {
-    signIn,
-    appendEventListener,
-    getUserById,
-    getUserByUsername,
-    getPostById,
-    PhotopPost,
-    PhotopSelfPost,
-    PhotopUser,
-    PhotopChat,
 }
