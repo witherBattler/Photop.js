@@ -71,12 +71,16 @@ export class PhotopSession {
         }
     }
     async getSelfData() {
-        return sendRequest(
+        let data = await sendRequest(
             api("me"),
             "GET",
             undefined,
             this.fullAuth
         )
+        return {
+            user: new PhotopUser(data.user),
+            groups: data.groups.map(group => new PhotopGroup(group, this))
+        }
     }
     async createPost(text, images = [], group = "") {
         let form = new FormData()
@@ -171,6 +175,42 @@ export class PhotopSession {
         )
     }
     
+}
+
+export class PhotopGroup {
+    constructor(config) {
+        this.config = config
+    }
+    get id() {
+        return this.config._id
+    }
+    get name() {
+        return this.config.name
+    }
+    get owner() {
+        return this.config.owner
+    }
+    async getOwnerData() {
+        let data = await sendRequest(
+            api("users/" + this.owner),
+            "GET",
+            undefined,
+            this.fullAuth
+        )
+        return new PhotopUser(data.user)
+    }
+    get creationDate() {
+        return this.config.creationDate
+    }
+    get iconStorageID() {
+        return this.config.iconStorageID
+    }
+    async getIconBinary() {
+        "https://photop-content.s3.amazonaws.com/GroupImages/" + this.iconStorageID
+    }
+    onPost(callback) {
+        onGroupPost(this.id, callback)
+    }
 }
 
 export class PhotopPost {
