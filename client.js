@@ -70,6 +70,14 @@ export class PhotopSession {
             id: config.user._id
         }
     }
+    async getSelfData() {
+        return sendRequest(
+            api("me"),
+            "GET",
+            undefined,
+            this.fullAuth
+        )
+    }
     async createPost(text, images = [], group = "") {
         let form = new FormData()
         form.append("data", JSON.stringify({ text }))
