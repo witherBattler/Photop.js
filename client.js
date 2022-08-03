@@ -76,7 +76,7 @@ export class PhotopSession {
         for(let i = 0; i != Math.min(images.length, 2); i++) {
             form.append("image-" + i, images[i], "image.jpg")
         }
-        const response1 = await fetch(api("posts/new" + (group == "" ? group : "?group=" + group)), {
+        const response1 = await fetch(api("posts/new" + (group == "" ? group : "?groupid=" + group)), {
             method: "POST",
             body: form,
             headers: {
@@ -166,15 +166,19 @@ export class PhotopSession {
 }
 
 export class PhotopPost {
-    constructor(id, author, text) {
+    constructor(id, author, groupid, text) {
         this.id = id
 		this.authorId = author
 		this.text = text || null
+        this.group = groupid || null
     }
     async getData() {
+        console.log(this.group)
         let response = await sendRequest(
-            api("posts?postid=" + this.id),
+            api("posts?postid=" + this.id + (this.group == null ? "" : "&groupid=" + this.group)),
             "GET",
+            undefined,
+            currentSession.fullAuth
         )
         response = JSON.parse(response)
         return {
@@ -299,11 +303,10 @@ export class PhotopChat {
 }
 
 export class PhotopSelfPost extends PhotopPost {
-    constructor(id, session, group) {
+    constructor(id, session) {
         super(id)
         this.url = "https://app.photop.live/?post=" + id
         this.session = session
-        this.group = group
     }
     async delete() {
         let response = await sendRequest(
@@ -355,15 +358,9 @@ export function signIn(username, password) {
 		resolve(session)
 	}) 
 }
-export function appendEventListener(event, callback) {
-	switch(event) {
-		case "newPost":
-			initializeMainPostListener()
-			newPostListeners.push(callback)
-			break
-		default:
-			throw new Error("Unknown event: " + event)
-	}
+export function onPost(callback) {
+    initializeMainPostListener()
+    newPostListeners.push(callback)
 }
 export async function getUserById(id) {
 	let response = await sendRequest(
@@ -379,12 +376,12 @@ export async function getUserByUsername(username) {
 	)
 	return new PhotopUser(JSON.parse(response))
 }
-export async function getPostById(id) {
+export async function getPostById(id, groupid) {
 	let response = await sendRequest(
-		api("posts?postid=" + id),
+		api("posts?postid=" + id + (groupid) == undefined ? "" : "&groupid=" + groupid),
 		"GET",
 	)
-	return new PhotopPost(response.post._id, response.post.Text)
+	return new PhotopPost(response.post._id, response.post.UserId, groupid)
 }
 
 class PhotopUser {
@@ -432,22 +429,53 @@ class PhotopUser {
     }
 }
 
+let mainPostListenerInitialized = false
 function initializeMainPostListener() {
+    if(!mainPostListenerInitialized) {
+        socket.subscribe({
+            task: "general",
+            location: "home",
+            userId: "",
+            groups: [],
+            token: "client_a05cd40e"
+        }, function(data) {
+            switch(data.type) {
+                case "newpost":
+                    for(let i = 0; i != newPostListeners.length; i++) {
+                        newPostListeners[i](new PhotopPost(data.post._id, data.post.UserID, undefined))
+                    }
+                    break
+            }
+        })
+        mainPostListenerInitialized = true
+    }
+}
+function initializeGroupPostListener(groupId) {
     socket.subscribe({
         task: "general",
         location: "home",
         userId: "",
-        groups: [],
+        groups: [groupId],
         token: "client_a05cd40e"
     }, function(data) {
         switch(data.type) {
             case "newpost":
-                for(let i = 0; i != newPostListeners.length; i++) {
-                    newPostListeners[i](new PhotopPost(data.post._id, data.post.UserID))
+                if(groupPostListeners[groupId] != undefined) {
+                    for(let i = 0; i != groupPostListeners[groupId].length; i++) {
+                        groupPostListeners[groupId][i](new PhotopPost(data.post._id, data.post.UserID, groupId))
+                    }
                 }
-                break
         }
     })
+}
+let groupPostListeners = {}
+export function onGroupPost(groupId, callback) {
+    if(groupPostListeners[groupId] == undefined) {
+        groupPostListeners[groupId] = [callback]
+        initializeGroupPostListener(groupId)
+    } else {
+        groupPostListeners[groupId].push(callback)
+    }
 }
 let chatEventListeners = {
 
