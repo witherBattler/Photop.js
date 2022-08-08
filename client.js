@@ -221,7 +221,6 @@ export class PhotopPost {
         this.group = groupid || null
     }
     async getData() {
-        console.log(this.group)
         let response = await sendRequest(
             api("posts?postid=" + this.id + (this.group == null ? "" : "&groupid=" + this.group)),
             "GET",
@@ -290,14 +289,18 @@ export class PhotopPost {
         )
     }
     async onChat(callback) {
+        console.log(api("chats/connect" + (this.group == null ? "" : "?groupid=" + this.group)))
         let response = await sendRequest(
-            api("chats/connect"),
+            api("chats/connect" + (this.group == null ? "" : "?groupid=" + this.group)),
             "POST",
             {
                 ssid: socket.secureID,
                 connect: [this.id],
-            }
+                posts: [this.id]
+            },
+            currentSession.fullAuth
         )
+        console.log(response)
         if(chatEventListeners[this.id] == undefined) {
             chatEventListeners[this.id] = [callback]
         } else {
