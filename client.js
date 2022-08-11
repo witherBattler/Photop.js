@@ -6,10 +6,6 @@ const socket = new SimpleSocket({
     project_token: "client_a05cd40e9f0d2b814249f06fbf97fe0f1d5"
 });
 
-socket.remotes.stream = function(data) {
-    console.log(data)
-}
-
 export async function sendRequest(url, method, body, auth, contentType = "application/json", stringify = true, useJson = false) {
     return new Promise((resolve, reject) => {
         let headers = {
@@ -139,11 +135,7 @@ export class PhotopSession {
                     auth: this.fullAuth
                 }
             }
-        ).then(response => {
-            response.text().then(data => {
-                console.log(data)
-            })
-        })
+        )
     }
     async updateProfileBanner(binary) {
         let form = new FormData()
@@ -289,23 +281,35 @@ export class PhotopPost {
         )
     }
     async onChat(callback) {
-        console.log(api("chats/connect" + (this.group == null ? "" : "?groupid=" + this.group)))
+        connectedPosts.push(this.id)
         let response = await sendRequest(
             api("chats/connect" + (this.group == null ? "" : "?groupid=" + this.group)),
             "POST",
             {
                 ssid: socket.secureID,
-                connect: [this.id],
-                posts: [this.id]
+                connect: connectedPosts,
+                posts: connectedPosts
             },
             currentSession.fullAuth
         )
-        console.log(response)
         if(chatEventListeners[this.id] == undefined) {
             chatEventListeners[this.id] = [callback]
         } else {
             chatEventListeners[this.id].push(callback)
         }
+    }
+    async disconnectChatListener() {
+        connectedPosts.splice(connectedPosts.indexOf(this.id), 1)
+        let response = await sendRequest(
+            api("chats/connect" + (this.group == null ? "" : "?groupid=" + this.group)),
+            "POST",
+            {
+                ssid: socket.secureID,
+                connect: connectedPosts,
+                posts: connectedPosts
+            },
+            currentSession.fullAuth
+        )
     }
 	async getAuthor() {
 		let user = await sendRequest(
@@ -314,6 +318,8 @@ export class PhotopPost {
 		return new PhotopUser(JSON.parse(user))
 	}
 }
+
+let connectedPosts = []
 
 export class PhotopChat {
     constructor(id, post) {
