@@ -433,12 +433,12 @@ export async function getUserByUsername(username) {
 	)
 	return new PhotopUser(JSON.parse(response))
 }
-export async function getPostById(id, groupid) {
-	let response = await sendRequest(
-		api("posts?postid=" + id + (groupid) == undefined ? "" : "&groupid=" + groupid),
+export async function getPostById(id) {
+	let response = JSON.parse(await sendRequest(
+		api("posts?postid=" + id),
 		"GET",
-	)
-	return new PhotopPost(response.post._id, response.post.UserId, groupid)
+	));
+	return new PhotopPost(response.posts[0]._id, response.posts[0].Text)
 }
 
 class PhotopUser {
